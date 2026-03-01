@@ -1,0 +1,5 @@
+{
+  "name": "PayStream - Disbursement Management",
+  "description": "A professional disbursement management system supporting bulk CSV uploads, manual entries, scheduled disbursements, and bank transfers to 60+ Indonesian banks.",
+  "requestFramePermissions": []
+}
