@@ -36,6 +36,12 @@ export interface Activity {
   recipient?: string;
   recipientName?: string;
   bankName?: string;
+  recipients?: {
+    name: string;
+    phone: string;
+    amount: number;
+    status: string;
+  }[];
 }
 
 export interface BatchSummary {

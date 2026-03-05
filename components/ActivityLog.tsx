@@ -247,7 +247,30 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({ language }) => {
                       </div>
                     </div>
                   )}
-                  {selectedActivity.type !== 'topup' && (
+                  {selectedActivity.recipients && (
+                    <div className="py-2 space-y-3">
+                      <span className="text-slate-500 text-xs font-bold uppercase block border-b border-slate-100 pb-1">
+                        {language === 'en' ? 'Recipient List' : 'Daftar Penerima'} ({selectedActivity.recipients.length})
+                      </span>
+                      <div className="max-h-48 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                        {selectedActivity.recipients.map((r, i) => (
+                          <div key={i} className="flex justify-between items-center text-xs p-2 bg-slate-50 rounded-lg border border-slate-100">
+                            <div className="flex flex-col">
+                              <span className="font-bold text-slate-900">{r.name}</span>
+                              <span className="text-slate-500 font-mono">{r.phone}</span>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-black text-slate-900">Rp {r.amount.toLocaleString()}</p>
+                              <span className={`text-[10px] font-bold ${r.status === 'Completed' ? 'text-green-600' : 'text-red-600'}`}>
+                                {getStatusLabel(r.status)}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {selectedActivity.type !== 'topup' && !selectedActivity.recipients && (
                     <div className="py-2">
                       <span className="text-slate-500 text-xs font-bold uppercase block mb-1">{language === 'en' ? 'Description' : 'Keterangan'}</span>
                       <p className="text-sm text-slate-700 italic">"{selectedActivity.description}"</p>

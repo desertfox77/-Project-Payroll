@@ -187,7 +187,24 @@ export const translations = {
     report_btn_submit: 'Submit Report',
     report_success_title: 'Report Submitted',
     report_success_msg: 'Your issue has been reported to the CoreFin team. We will investigate and get back to you.',
-    report_error_min_chars: 'Description must be at least 10 characters.'
+    report_error_min_chars: 'Description must be at least 10 characters.',
+
+    // Bulk Detail Modal
+    bulk_det_title: 'Bulk Disbursement Details',
+    bulk_det_code: 'Batch Code',
+    bulk_det_submitted: 'Submitted At',
+    bulk_det_recipients: 'Total Recipients',
+    bulk_det_status: 'Batch Status',
+    bulk_det_breakdown: 'Payment Breakdown',
+    bulk_det_amount: 'Total Disbursement',
+    bulk_det_fee: 'Total Service Fee',
+    bulk_det_total: 'Total Deduction',
+    bulk_det_list: 'Recipient List',
+    bulk_det_success: 'Success',
+    bulk_det_failed: 'Failed',
+    bulk_det_retry: 'Retry Failed Recipients',
+    bulk_det_reason: 'Reason',
+    bulk_det_view: 'View Batch'
   },
   id: {
     // Navigation
@@ -376,6 +393,23 @@ export const translations = {
     report_btn_submit: 'Kirim Laporan',
     report_success_title: 'Laporan Terkirim',
     report_success_msg: 'Masalah Anda telah dilaporkan ke tim CoreFin. Kami akan menyelidiki dan menghubungi Anda kembali.',
-    report_error_min_chars: 'Deskripsi harus minimal 10 karakter.'
+    report_error_min_chars: 'Deskripsi harus minimal 10 karakter.',
+
+    // Bulk Detail Modal
+    bulk_det_title: 'Detail Penyaluran Massal',
+    bulk_det_code: 'Kode Batch',
+    bulk_det_submitted: 'Dikirim Pada',
+    bulk_det_recipients: 'Total Penerima',
+    bulk_det_status: 'Status Batch',
+    bulk_det_breakdown: 'Rincian Pembayaran',
+    bulk_det_amount: 'Total Penyaluran',
+    bulk_det_fee: 'Total Biaya Layanan',
+    bulk_det_total: 'Total Potongan',
+    bulk_det_list: 'Daftar Penerima',
+    bulk_det_success: 'Berhasil',
+    bulk_det_failed: 'Gagal',
+    bulk_det_retry: 'Coba Lagi Penerima Gagal',
+    bulk_det_reason: 'Alasan',
+    bulk_det_view: 'Lihat Batch'
   }
 };

@@ -19,11 +19,13 @@ import {
   FileText,
   ChevronRight,
   Loader2,
-  Share2
+  Share2,
+  AlertTriangle,
+  RefreshCw
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
-import { Language } from '../types';
+import { Language, ViewState } from '../types';
 import { translations } from '../translations';
 import { reportIssueToGoogleChat } from '../services/reportService';
 import { MOCK_AGENT } from '../constants';
@@ -37,6 +39,14 @@ const getOffsetDate = (days: number, hours: number = 0) => {
   return d.toISOString().replace('T', ' ').substring(0, 16);
 };
 
+interface BulkRecipient {
+  name: string;
+  phone: string;
+  amount: number;
+  status: 'Success' | 'Failed';
+  reason?: string;
+}
+
 interface HistoryTransaction {
   id: string;
   date: string;
@@ -47,13 +57,16 @@ interface HistoryTransaction {
   description?: string;
   recipientName?: string;
   bankName?: string;
+  type?: 'Single' | 'Bulk';
+  recipients?: BulkRecipient[];
 }
 
 interface TransactionHistoryProps {
   language: Language;
+  onNavigate: (view: ViewState) => void;
 }
 
-export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ language }) => {
+export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ language, onNavigate }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [dateRange, setDateRange] = useState('All Time');
@@ -61,6 +74,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ language
   const [customEndDate, setCustomEndDate] = useState('');
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [selectedTx, setSelectedTx] = useState<HistoryTransaction | null>(null);
+  const [selectedBulkBatch, setSelectedBulkBatch] = useState<HistoryTransaction | null>(null);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportDescription, setReportDescription] = useState('');
   const [isReporting, setIsReporting] = useState(false);
@@ -89,17 +103,37 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ language
   }, []);
 
   const allTransactions = useMemo<HistoryTransaction[]>(() => [
-    { id: 'TX-11', date: getOffsetDate(0, 0), recipient: '0661180128', recipientName: 'Leonardus Wiliem /A', bankName: 'Bank Central Asia (BCA)', amount: 2500000, status: 'Completed', fee: 10000, description: 'BCA Bank Transfer' },
-    { id: 'TX-1', date: getOffsetDate(0, 1), recipient: '081519866374', recipientName: 'Soekarno', amount: 1500000, status: 'Completed', fee: 0, description: 'October Salary' },
-    { id: 'TX-2', date: getOffsetDate(0, 5), recipient: '081812341230', recipientName: 'Suharto', amount: 200000, status: 'Completed', fee: 0, description: 'Transport Allowance' },
-    { id: 'TX-3', date: getOffsetDate(1, 2), recipient: '081234567890', recipientName: 'Bacharuddin', amount: 5000000, status: 'Failed', fee: 0, description: 'Bonus Payment' },
-    { id: 'TX-4', date: getOffsetDate(3, 10), recipient: '081122334457', recipientName: 'Megawati', amount: 1200000, status: 'Completed', fee: 0, description: 'Incentives' },
-    { id: 'TX-5', date: getOffsetDate(5, 4), recipient: '081519866374', recipientName: 'Soekarno', amount: 450000, status: 'Completed', fee: 0, description: 'Overtime Pay' },
-    { id: 'TX-6', date: getOffsetDate(10, 2), recipient: '085566778898', recipientName: 'Susilo', amount: 3000000, status: 'Completed', fee: 0, description: 'Monthly Retainer' },
-    { id: 'TX-7', date: getOffsetDate(15, 0), recipient: '081234567890', recipientName: 'Bacharuddin', amount: 150000, status: 'Completed', fee: 0, description: 'Refund' },
-    { id: 'TX-8', date: getOffsetDate(20, 8), recipient: '089765432134', recipientName: 'Abdurrahman', amount: 2500000, status: 'Failed', fee: 0, description: 'Project Fee' },
-    { id: 'TX-9', date: getOffsetDate(35, 1), recipient: '081812341230', recipientName: 'Suharto', amount: 1200000, status: 'Completed', fee: 0, description: 'September Bonus' },
-    { id: 'TX-10', date: getOffsetDate(60, 5), recipient: '081122334457', recipientName: 'Megawati', amount: 800000, status: 'Completed', fee: 0, description: 'Commission' },
+    { 
+      id: 'BLK-01', 
+      date: getOffsetDate(0, 0), 
+      recipient: '12 Recipients', 
+      recipientName: 'Monthly Payroll Batch', 
+      amount: 15000000, 
+      status: 'Partial', 
+      fee: 25000, 
+      description: 'Bulk Disbursement',
+      type: 'Bulk',
+      recipients: [
+        { name: 'Soekarno', phone: '081519866374', amount: 1500000, status: 'Success' },
+        { name: 'Suharto', phone: '081812341230', amount: 200000, status: 'Success' },
+        { name: 'Bacharuddin', phone: '081234567890', amount: 5000000, status: 'Failed', reason: 'Invalid number' },
+        { name: 'Megawati', phone: '081122334457', amount: 1200000, status: 'Success' },
+        { name: 'Susilo', phone: '085566778898', amount: 3000000, status: 'Success' },
+        { name: 'Abdurrahman', phone: '089765432134', amount: 2500000, status: 'Failed', reason: 'Insufficient balance' },
+        { name: 'Joko Widodo', phone: '081233445566', amount: 1600000, status: 'Success' },
+      ]
+    },
+    { id: 'TX-11', date: getOffsetDate(0, 0), recipient: '0661180128', recipientName: 'Leonardus Wiliem /A', bankName: 'Bank Central Asia (BCA)', amount: 2500000, status: 'Completed', fee: 10000, description: 'BCA Bank Transfer', type: 'Single' },
+    { id: 'TX-1', date: getOffsetDate(0, 1), recipient: '081519866374', recipientName: 'Soekarno', amount: 1500000, status: 'Completed', fee: 0, description: 'October Salary', type: 'Single' },
+    { id: 'TX-2', date: getOffsetDate(0, 5), recipient: '081812341230', recipientName: 'Suharto', amount: 200000, status: 'Completed', fee: 0, description: 'Transport Allowance', type: 'Single' },
+    { id: 'TX-3', date: getOffsetDate(1, 2), recipient: '081234567890', recipientName: 'Bacharuddin', amount: 5000000, status: 'Failed', fee: 0, description: 'Bonus Payment', type: 'Single' },
+    { id: 'TX-4', date: getOffsetDate(3, 10), recipient: '081122334457', recipientName: 'Megawati', amount: 1200000, status: 'Completed', fee: 0, description: 'Incentives', type: 'Single' },
+    { id: 'TX-5', date: getOffsetDate(5, 4), recipient: '081519866374', recipientName: 'Soekarno', amount: 450000, status: 'Completed', fee: 0, description: 'Overtime Pay', type: 'Single' },
+    { id: 'TX-6', date: getOffsetDate(10, 2), recipient: '085566778898', recipientName: 'Susilo', amount: 3000000, status: 'Completed', fee: 0, description: 'Monthly Retainer', type: 'Single' },
+    { id: 'TX-7', date: getOffsetDate(15, 0), recipient: '081234567890', recipientName: 'Bacharuddin', amount: 150000, status: 'Completed', fee: 0, description: 'Refund', type: 'Single' },
+    { id: 'TX-8', date: getOffsetDate(20, 8), recipient: '089765432134', recipientName: 'Abdurrahman', amount: 2500000, status: 'Failed', fee: 0, description: 'Project Fee', type: 'Single' },
+    { id: 'TX-9', date: getOffsetDate(35, 1), recipient: '081812341230', recipientName: 'Suharto', amount: 1200000, status: 'Completed', fee: 0, description: 'September Bonus', type: 'Single' },
+    { id: 'TX-10', date: getOffsetDate(60, 5), recipient: '081122334457', recipientName: 'Megawati', amount: 800000, status: 'Completed', fee: 0, description: 'Commission', type: 'Single' },
   ], []);
 
   const filteredTransactions = useMemo(() => {
@@ -229,6 +263,71 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ language
     doc.save(`PayStream_Receipt_${tx.id}.pdf`);
   };
 
+  const handlePrintBatchPDF = (batch: HistoryTransaction) => {
+    const doc = new jsPDF();
+    doc.setFillColor(30, 41, 59);
+    doc.rect(0, 0, 210, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(24);
+    doc.text('PAYSTREAM', 20, 25);
+    doc.setFontSize(10);
+    doc.text(language === 'en' ? 'OFFICIAL BATCH DISBURSEMENT RECEIPT' : 'RESI PENYALURAN BATCH RESMI', 20, 32);
+    
+    doc.setTextColor(30, 41, 59);
+    doc.setFontSize(12);
+    doc.text(`${t.bulk_det_code}: ${batch.id}`, 20, 55);
+    doc.text(`${t.tbl_date}: ${batch.date}`, 140, 55);
+    
+    doc.setDrawColor(226, 232, 240);
+    doc.line(20, 65, 190, 65);
+    
+    doc.setFontSize(14);
+    doc.text(t.bulk_det_breakdown, 20, 75);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${t.bulk_det_amount}: Rp ${batch.amount.toLocaleString()}`, 25, 85);
+    doc.text(`${t.bulk_det_fee}: Rp ${(batch.fee || 0).toLocaleString()}`, 25, 92);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${t.bulk_det_total}: Rp ${(batch.amount + (batch.fee || 0)).toLocaleString()}`, 25, 99);
+    
+    doc.setFontSize(14);
+    doc.text(t.bulk_det_list, 20, 115);
+    
+    let y = 125;
+    doc.setFontSize(9);
+    doc.text(t.tbl_recipient, 20, y);
+    doc.text(t.tbl_amount, 120, y);
+    doc.text(t.tbl_status, 160, y);
+    doc.line(20, y + 2, 190, y + 2);
+    y += 10;
+
+    batch.recipients?.forEach((r, i) => {
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${r.name} (${r.phone})`, 20, y);
+      doc.text(`Rp ${r.amount.toLocaleString()}`, 120, y);
+      doc.text(r.status, 160, y);
+      y += 8;
+    });
+    
+    doc.save(`PayStream_Batch_${batch.id}.pdf`);
+  };
+
+  const handleRetryFailed = (batch: HistoryTransaction) => {
+    alert(language === 'en' 
+      ? `Retrying ${batch.recipients?.filter(r => r.status === 'Failed').length} failed transactions...` 
+      : `Mencoba ulang ${batch.recipients?.filter(r => r.status === 'Failed').length} transaksi yang gagal...`);
+    // Mock retry logic
+    setTimeout(() => {
+      setSelectedBulkBatch(null);
+      onNavigate('disbursement');
+    }, 1500);
+  };
+
   const handleReportIssue = (txId: string) => {
     setIsReportModalOpen(true);
     setReportDescription('');
@@ -314,6 +413,8 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ language
     switch (status) {
       case 'Completed': return 'bg-green-100 text-green-700 border-green-200';
       case 'Failed': return 'bg-red-100 text-red-700 border-red-200';
+      case 'Partial': return 'bg-amber-100 text-amber-700 border-amber-200';
+      case 'Processing': return 'bg-blue-100 text-blue-700 border-blue-200';
       default: return 'bg-slate-100 text-slate-700 border-slate-200';
     }
   };
@@ -322,6 +423,8 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ language
     switch (status) {
       case 'Completed': return <CheckCircle2 size={14} className="mr-1.5" />;
       case 'Failed': return <XCircle size={14} className="mr-1.5" />;
+      case 'Partial': return <AlertTriangle size={14} className="mr-1.5" />;
+      case 'Processing': return <Loader2 size={14} className="mr-1.5 animate-spin" />;
       default: return <Clock size={14} className="mr-1.5" />;
     }
   };
@@ -335,6 +438,8 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ language
     if (language === 'en') return status;
     if (status === 'Completed') return 'Selesai';
     if (status === 'Failed') return 'Gagal';
+    if (status === 'Partial') return 'Sebagian';
+    if (status === 'Processing') return 'Memproses';
     return 'Menunggu';
   };
 
@@ -484,10 +589,10 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ language
                   </td>
                   <td className="px-6 py-4 text-center">
                     <button 
-                      onClick={() => setSelectedTx(tx)}
+                      onClick={() => tx.type === 'Bulk' ? setSelectedBulkBatch(tx) : setSelectedTx(tx)}
                       className="text-blue-600 hover:text-blue-800 font-bold text-sm hover:underline"
                     >
-                      {t.hist_view_details}
+                      {tx.type === 'Bulk' ? t.bulk_det_view : t.hist_view_details}
                     </button>
                   </td>
                 </tr>
@@ -697,6 +802,160 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ language
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {selectedBulkBatch && (
+        <div 
+          className="fixed inset-0 z-50 flex items-start justify-center p-4 bg-slate-900/40 backdrop-blur-[2px] animate-fadeIn overflow-y-auto pt-10 md:pt-24"
+          onClick={() => setSelectedBulkBatch(null)}
+        >
+          <div 
+            className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-zoomIn mb-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-xl border ${getStatusStyles(selectedBulkBatch.status)}`}>
+                   <FileText size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-900">{t.bulk_det_title}</h3>
+                  <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+                    {t.bulk_det_code}: {selectedBulkBatch.id}
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => setSelectedBulkBatch(null)} className="p-2 hover:bg-slate-100 rounded-full"><X size={20} /></button>
+            </div>
+
+            <div className="p-8 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">{language === 'en' ? 'Batch Information' : 'Informasi Batch'}</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500 font-medium">{t.bulk_det_submitted}</span>
+                      <span className="text-slate-900 font-bold">{selectedBulkBatch.date}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500 font-medium">{t.bulk_det_recipients}</span>
+                      <span className="text-slate-900 font-bold">{selectedBulkBatch.recipients?.length || 0}</span>
+                    </div>
+                    <div className="flex justify-between text-sm items-center">
+                      <span className="text-slate-500 font-medium">{t.bulk_det_status}</span>
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${getStatusStyles(selectedBulkBatch.status)}`}>
+                        {getStatusLabel(selectedBulkBatch.status)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">{t.bulk_det_breakdown}</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500 font-medium">{t.bulk_det_amount}</span>
+                      <span className="text-slate-900 font-bold">Rp {selectedBulkBatch.amount.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500 font-medium">{t.bulk_det_fee}</span>
+                      <span className="text-slate-900 font-bold">Rp {(selectedBulkBatch.fee || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-3 border-t-2 border-slate-100 mt-2">
+                      <span className="text-slate-900 font-black">{t.bulk_det_total}</span>
+                      <span className="text-blue-600 text-lg font-black">Rp {(selectedBulkBatch.amount + (selectedBulkBatch.fee || 0)).toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">{t.bulk_det_list}</h4>
+                  <div className="flex gap-3">
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-lg">
+                      <CheckCircle2 size={12} />
+                      {selectedBulkBatch.recipients?.filter(r => r.status === 'Success').length} {t.bulk_det_success}
+                    </span>
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded-lg">
+                      <XCircle size={12} />
+                      {selectedBulkBatch.recipients?.filter(r => r.status === 'Failed').length} {t.bulk_det_failed}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="max-h-64 overflow-y-auto border border-slate-100 rounded-2xl">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-50 sticky top-0">
+                      <tr>
+                        <th className="px-4 py-3 font-bold text-slate-500">{t.tbl_recipient}</th>
+                        <th className="px-4 py-3 font-bold text-slate-500 text-right">{t.tbl_amount}</th>
+                        <th className="px-4 py-3 font-bold text-slate-500">{t.tbl_status}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {selectedBulkBatch.recipients?.map((r, i) => (
+                        <tr key={i} className={r.status === 'Failed' ? 'bg-red-50/30' : ''}>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-col">
+                              <span className="font-bold text-slate-900">{r.name}</span>
+                              <span className="text-xs text-slate-500 font-mono">{r.phone}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-right font-bold">Rp {r.amount.toLocaleString()}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-col">
+                              <span className={`text-xs font-bold ${r.status === 'Success' ? 'text-green-600' : 'text-red-600'}`}>
+                                {r.status === 'Success' ? t.bulk_det_success : t.bulk_det_failed}
+                              </span>
+                              {r.reason && <span className="text-[10px] text-red-400 font-medium">{r.reason}</span>}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-3 pt-4 border-t border-slate-100">
+                <button 
+                  onClick={() => handlePrintBatchPDF(selectedBulkBatch)}
+                  className="flex-1 min-w-[140px] py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-black transition-all flex items-center justify-center gap-2"
+                >
+                  <Printer size={18} />
+                  {t.hist_print_btn}
+                </button>
+                <button 
+                  onClick={() => handleShare(selectedBulkBatch)}
+                  className="flex-1 min-w-[140px] py-4 border-2 border-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                >
+                  <Share2 size={18} />
+                  {t.hist_share_btn}
+                </button>
+                {(selectedBulkBatch.status === 'Partial' || selectedBulkBatch.status === 'Failed') && (
+                  <button 
+                    onClick={() => handleRetryFailed(selectedBulkBatch)}
+                    className="flex-1 min-w-[140px] py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20"
+                  >
+                    <RefreshCw size={18} />
+                    {t.bulk_det_retry}
+                  </button>
+                )}
+                <button 
+                  onClick={() => {
+                    setSelectedTx(selectedBulkBatch);
+                    setIsReportModalOpen(true);
+                  }}
+                  className="flex-1 min-w-[140px] py-4 border-2 border-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                >
+                  <FileText size={18} />
+                  {t.hist_report_btn}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

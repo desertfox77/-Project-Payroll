@@ -49,7 +49,7 @@ const App: React.FC = () => {
       case 'bank-transfer':
         return <BankTransferForm onNavigate={setView} agent={currentUser} setAgent={setCurrentUser} language={language} />;
       case 'history':
-        return <TransactionHistory language={language} />;
+        return <TransactionHistory language={language} onNavigate={setView} />;
       case 'activity-log':
         return <ActivityLog language={language} />;
       case 'scheduled':

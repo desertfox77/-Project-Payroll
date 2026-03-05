@@ -116,10 +116,28 @@ export const LIMITS = {
 };
 
 export const MOCK_ACTIVITIES: Activity[] = ([
+  { 
+    id: 'ACT-110', 
+    type: 'disbursement', 
+    title: 'Bulk Disbursement', 
+    description: 'Monthly Payroll Batch #42', 
+    date: '2026-03-03 10:30', 
+    amount: 15000000, 
+    status: 'Completed',
+    recipients: [
+      { name: 'Soekarno', phone: '081519866374', amount: 1500000, status: 'Completed' },
+      { name: 'Suharto', phone: '081812341230', amount: 200000, status: 'Completed' },
+      { name: 'Bacharuddin', phone: '081234567890', amount: 5000000, status: 'Failed' },
+      { name: 'Megawati', phone: '081122334457', amount: 1200000, status: 'Completed' },
+      { name: 'Susilo', phone: '085566778898', amount: 3000000, status: 'Completed' },
+      { name: 'Abdurrahman', phone: '089765432134', amount: 2500000, status: 'Failed' },
+      { name: 'Joko Widodo', phone: '081233445566', amount: 1600000, status: 'Completed' },
+    ]
+  },
   { id: 'ACT-101', type: 'disbursement', title: 'Disbursement', description: 'October Salary', date: '2023-10-25 10:30', recipient: '081519866374', recipientName: 'Soekarno', amount: 1500000, status: 'Completed' },
   { id: 'ACT-107', type: 'disbursement', title: 'Bank Transfer', description: 'BCA Transfer', date: '2026-02-24 09:15', recipient: '0661180128', recipientName: 'Leonardus Wiliem /A', bankName: 'Bank Central Asia (BCA)', amount: 2500000, status: 'Completed' },
   { id: 'ACT-102', type: 'topup', title: 'Top-Up Request', description: 'Balance top up request sent to CorpFin', date: '2023-10-25 09:15', amount: 5000000, status: 'Pending' },
-  { id: 'ACT-103', type: 'disbursement', title: 'Individual Disbursement', description: 'Transport Allowance', date: '2023-10-24 14:15', recipient: '081812341230', recipientName: 'Suharto', amount: 200000, status: 'Completed' },
+  { id: 'ACT-103', type: 'disbursement', title: 'Disbursement', description: 'Transport Allowance', date: '2023-10-24 14:15', recipient: '081812341230', recipientName: 'Suharto', amount: 200000, status: 'Completed' },
   { id: 'ACT-105', type: 'disbursement', title: 'Disbursement', description: 'Bonus Payment', date: '2023-10-24 09:00', recipient: '081234567890', recipientName: 'Bacharuddin', amount: 5000000, status: 'Failed' },
   { id: 'ACT-106', type: 'topup', title: 'Top-Up Completed', description: 'Balance top up approved', date: '2023-10-23 18:30', amount: 2000000, status: 'Completed' },
 ] as Activity[]).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
