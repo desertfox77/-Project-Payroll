@@ -117,6 +117,20 @@ export const LIMITS = {
 
 export const MOCK_ACTIVITIES: Activity[] = ([
   { 
+    id: 'ACT-111', 
+    type: 'disbursement', 
+    title: 'Bulk Disbursement Failed', 
+    description: 'Incentive Batch #05', 
+    date: '2026-03-04 14:20', 
+    amount: 3000000, 
+    status: 'Failed',
+    recipients: [
+      { name: 'Bacharuddin', phone: '081234567890', amount: 1000000, status: 'Failed' },
+      { name: 'Abdurrahman', phone: '089765432134', amount: 1000000, status: 'Failed' },
+      { name: 'Soekarno', phone: '081519866374', amount: 1000000, status: 'Failed' },
+    ]
+  },
+  { 
     id: 'ACT-110', 
     type: 'disbursement', 
     title: 'Bulk Disbursement', 

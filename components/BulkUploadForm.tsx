@@ -410,19 +410,34 @@ export const BulkUploadForm: React.FC<BulkUploadFormProps> = ({ onNavigate, agen
 
               <div className="space-y-3">
                 <h4 className="font-bold text-slate-900">{t.bulk_summary_title}</h4>
-                <div className="bg-slate-900 text-white rounded-2xl p-6 space-y-4">
-                  <div className="flex justify-between items-center opacity-70">
+                <div className={`rounded-2xl p-6 space-y-4 transition-all ${agent.balance < (summary.totalAmount + summary.totalFees) ? 'bg-red-900 ring-4 ring-red-100' : 'bg-slate-900'}`}>
+                  <div className="flex justify-between items-center opacity-70 text-white">
                     <span>{language === 'en' ? 'Total Amount' : 'Total Jumlah'}</span>
                     <span className="font-bold">Rp {summary.totalAmount.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between items-center opacity-70">
+                  <div className="flex justify-between items-center opacity-70 text-white">
                     <span>{language === 'en' ? 'Total Service Fees' : 'Total Biaya Layanan'}</span>
                     <span className="font-bold">Rp {summary.totalFees.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between items-center pt-4 border-t border-slate-700">
+                  <div className="flex justify-between items-center pt-4 border-t border-slate-700 text-white">
                     <span className="font-bold">{t.bulk_total_cost}</span>
-                    <span className="text-xl font-black text-blue-400">Rp {(summary.totalAmount + summary.totalFees).toLocaleString()}</span>
+                    <span className={`text-xl font-black ${agent.balance < (summary.totalAmount + summary.totalFees) ? 'text-red-400' : 'text-blue-400'}`}>
+                      Rp {(summary.totalAmount + summary.totalFees).toLocaleString()}
+                    </span>
                   </div>
+                  {agent.balance < (summary.totalAmount + summary.totalFees) && (
+                    <div className="pt-4 border-t border-red-800 flex items-start gap-3 text-red-200">
+                      <AlertCircle size={18} className="shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <p className="text-xs font-black uppercase tracking-widest">{language === 'en' ? 'Insufficient Balance' : 'Saldo Tidak Cukup'}</p>
+                        <p className="text-[10px] font-medium leading-relaxed">
+                          {language === 'en' 
+                            ? `Your current balance (Rp ${agent.balance.toLocaleString()}) is below the total batch cost. Please top up your account to proceed.` 
+                            : `Saldo Anda saat ini (Rp ${agent.balance.toLocaleString()}) di bawah total biaya batch. Silakan top up akun Anda untuk melanjutkan.`}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -434,6 +449,9 @@ export const BulkUploadForm: React.FC<BulkUploadFormProps> = ({ onNavigate, agen
                       <div className="flex flex-col">
                         <span className="text-sm font-black text-slate-900">{tx.recipientName || tx.phoneNumber}</span>
                         <span className="text-xs text-slate-500 font-mono">{tx.phoneNumber}</span>
+                        {tx.description && (
+                          <span className="text-[10px] text-slate-400 italic mt-0.5">"{tx.description}"</span>
+                        )}
                         {tx.status === 'invalid' && <span className="text-[10px] text-red-500 font-bold uppercase mt-1 leading-tight max-w-xs">{tx.error}</span>}
                       </div>
                       <div className="text-right shrink-0 ml-4">
@@ -456,8 +474,8 @@ export const BulkUploadForm: React.FC<BulkUploadFormProps> = ({ onNavigate, agen
                 </button>
                 <button 
                   onClick={handleProceedToAuth}
-                  disabled={summary.validCount === 0 || (scheduleType === 'scheduled' && !scheduledTime)}
-                  className={`flex-1 px-6 py-3.5 bg-blue-600 text-white font-bold rounded-xl shadow-lg transition-all ${summary.validCount === 0 || (scheduleType === 'scheduled' && !scheduledTime) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700 shadow-blue-200'}`}
+                  disabled={summary.validCount === 0 || (scheduleType === 'scheduled' && !scheduledTime) || agent.balance < (summary.totalAmount + summary.totalFees)}
+                  className={`flex-1 px-6 py-3.5 bg-blue-600 text-white font-bold rounded-xl shadow-lg transition-all ${summary.validCount === 0 || (scheduleType === 'scheduled' && !scheduledTime) || agent.balance < (summary.totalAmount + summary.totalFees) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700 shadow-blue-200'}`}
                 >
                   {scheduleType === 'scheduled' 
                     ? (language === 'en' ? 'Review Schedule' : 'Tinjau Jadwal')

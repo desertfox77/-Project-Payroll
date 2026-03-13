@@ -45,6 +45,7 @@ interface BulkRecipient {
   amount: number;
   status: 'Success' | 'Failed';
   reason?: string;
+  description?: string;
 }
 
 interface HistoryTransaction {
@@ -110,18 +111,85 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ language
       recipientName: 'Monthly Payroll Batch', 
       amount: 15000000, 
       status: 'Partial', 
-      fee: 25000, 
+      fee: 0, 
       description: 'Bulk Disbursement',
       type: 'Bulk',
       recipients: [
-        { name: 'Soekarno', phone: '081519866374', amount: 1500000, status: 'Success' },
-        { name: 'Suharto', phone: '081812341230', amount: 200000, status: 'Success' },
-        { name: 'Bacharuddin', phone: '081234567890', amount: 5000000, status: 'Failed', reason: 'Invalid number' },
-        { name: 'Megawati', phone: '081122334457', amount: 1200000, status: 'Success' },
-        { name: 'Susilo', phone: '085566778898', amount: 3000000, status: 'Success' },
-        { name: 'Abdurrahman', phone: '089765432134', amount: 2500000, status: 'Failed', reason: 'Insufficient balance' },
-        { name: 'Joko Widodo', phone: '081233445566', amount: 1600000, status: 'Success' },
+        { name: 'Soekarno', phone: '081519866374', amount: 1500000, status: 'Success', description: 'Monthly Salary' },
+        { name: 'Suharto', phone: '081812341230', amount: 200000, status: 'Success', description: 'Transport' },
+        { name: 'Bacharuddin', phone: '081234567890', amount: 5000000, status: 'Failed', reason: 'Invalid number', description: 'Salary' },
+        { name: 'Megawati', phone: '081122334457', amount: 1200000, status: 'Success', description: 'Monthly Salary' },
+        { name: 'Susilo', phone: '085566778898', amount: 3000000, status: 'Success', description: 'Monthly Salary' },
+        { name: 'Abdurrahman', phone: '089765432134', amount: 2500000, status: 'Failed', reason: 'Insufficient balance', description: 'Salary' },
+        { name: 'Joko Widodo', phone: '081233445566', amount: 1600000, status: 'Success', description: 'Monthly Salary' },
       ]
+    },
+    { 
+      id: 'BLK-02', 
+      date: getOffsetDate(1, 0), 
+      recipient: '5 Recipients', 
+      recipientName: 'Bonus Batch #12', 
+      amount: 5000000, 
+      status: 'Completed', 
+      fee: 0, 
+      description: 'Bonus Payout',
+      type: 'Bulk',
+      recipients: [
+        { name: 'Soekarno', phone: '081519866374', amount: 1000000, status: 'Success' },
+        { name: 'Suharto', phone: '081812341230', amount: 1000000, status: 'Success' },
+        { name: 'Megawati', phone: '081122334457', amount: 1000000, status: 'Success' },
+        { name: 'Susilo', phone: '085566778898', amount: 1000000, status: 'Success' },
+        { name: 'Joko Widodo', phone: '081233445566', amount: 1000000, status: 'Success' },
+      ]
+    },
+    { 
+      id: 'BLK-03', 
+      date: getOffsetDate(2, 0), 
+      recipient: '3 Recipients', 
+      recipientName: 'Incentive Batch #05', 
+      amount: 3000000, 
+      status: 'Failed', 
+      fee: 0, 
+      description: 'Monthly Sales Incentive',
+      type: 'Bulk',
+      recipients: [
+        { name: 'Bacharuddin', phone: '081234567890', amount: 1000000, status: 'Failed', reason: 'Invalid account' },
+        { name: 'Abdurrahman', phone: '089765432134', amount: 1000000, status: 'Failed', reason: 'Insufficient balance' },
+        { name: 'Soekarno', phone: '081519866374', amount: 1000000, status: 'Failed', reason: 'System error' },
+      ]
+    },
+    { 
+      id: 'TLX-101', 
+      date: getOffsetDate(0, 2), 
+      recipient: '081234567890', 
+      recipientName: 'Bacharuddin', 
+      amount: 500000, 
+      status: 'Completed', 
+      fee: 2500, 
+      description: 'Refund for overpayment',
+      type: 'Single' 
+    },
+    { 
+      id: 'TLX-102', 
+      date: getOffsetDate(1, 4), 
+      recipient: '089765432134', 
+      recipientName: 'Abdurrahman', 
+      amount: 1250000, 
+      status: 'Completed', 
+      fee: 2500, 
+      description: 'Project milestone payment',
+      type: 'Single' 
+    },
+    { 
+      id: 'TLX-103', 
+      date: getOffsetDate(2, 1), 
+      recipient: '081519866374', 
+      recipientName: 'Soekarno', 
+      amount: 750000, 
+      status: 'Failed', 
+      fee: 2500, 
+      description: 'Weekly allowance',
+      type: 'Single' 
     },
     { id: 'TX-11', date: getOffsetDate(0, 0), recipient: '0661180128', recipientName: 'Leonardus Wiliem /A', bankName: 'Bank Central Asia (BCA)', amount: 2500000, status: 'Completed', fee: 10000, description: 'BCA Bank Transfer', type: 'Single' },
     { id: 'TX-1', date: getOffsetDate(0, 1), recipient: '081519866374', recipientName: 'Soekarno', amount: 1500000, status: 'Completed', fee: 0, description: 'October Salary', type: 'Single' },
@@ -480,6 +548,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ language
             >
               <option value="All">{t.hist_filter_status}</option>
               <option value="Completed">{language === 'en' ? 'Completed' : 'Selesai'}</option>
+              <option value="Partial">{language === 'en' ? 'Partial' : 'Sebagian'}</option>
               <option value="Failed">{language === 'en' ? 'Failed' : 'Gagal'}</option>
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
@@ -693,6 +762,12 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ language
                       </div>
                     </div>
                   </div>
+                  {selectedTx.description && (
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">{t.man_desc}</h4>
+                      <p className="text-sm text-slate-600 bg-slate-50 p-4 rounded-2xl border border-slate-100 italic">"{selectedTx.description}"</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -893,6 +968,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ language
                         <th className="px-4 py-3 font-bold text-slate-500">{t.tbl_recipient}</th>
                         <th className="px-4 py-3 font-bold text-slate-500 text-right">{t.tbl_amount}</th>
                         <th className="px-4 py-3 font-bold text-slate-500">{t.tbl_status}</th>
+                        <th className="px-4 py-3 font-bold text-slate-500">{t.man_desc}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
@@ -912,6 +988,9 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({ language
                               </span>
                               {r.reason && <span className="text-[10px] text-red-400 font-medium">{r.reason}</span>}
                             </div>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-slate-500 italic">
+                            {r.description || '-'}
                           </td>
                         </tr>
                       ))}

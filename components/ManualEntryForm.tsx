@@ -53,7 +53,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ onNavigate, ag
       phoneNumber: formData.phoneNumber, 
       amount, 
       description: formData.description 
-    });
+    }, 0, agent);
 
     if (tx.status === 'invalid') {
       if (tx.error === 'Phone number not registered') {
@@ -144,10 +144,19 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ onNavigate, ag
                     min="1"
                     step="1"
                     placeholder="0"
-                    className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
+                    className={`w-full pl-11 pr-4 py-3 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none ${parseFloat(formData.amount) > agent.balance ? 'border-red-500 ring-2 ring-red-50' : 'border-slate-200'}`}
                     value={formData.amount}
-                    onChange={e => setFormData({ ...formData, amount: e.target.value })}
+                    onChange={e => {
+                      setFormData({ ...formData, amount: e.target.value });
+                      setError(null);
+                    }}
                   />
+                </div>
+                <div className="flex justify-between items-center px-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{language === 'en' ? 'Available Balance' : 'Saldo Tersedia'}</span>
+                  <span className={`text-xs font-black ${parseFloat(formData.amount) > agent.balance ? 'text-red-600' : 'text-slate-900'}`}>
+                    Rp {agent.balance.toLocaleString()}
+                  </span>
                 </div>
               </div>
               <div>
@@ -217,6 +226,12 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({ onNavigate, ag
                 <span className="text-slate-900 font-bold">{language === 'en' ? 'Total Deduction' : 'Total Potongan'}</span>
                 <span className="text-blue-600 text-xl font-black">Rp {validatedTx?.totalDeduction.toLocaleString()}</span>
               </div>
+              {formData.description && (
+                <div className="pt-4 border-t border-slate-200">
+                  <span className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-2">{t.man_desc}</span>
+                  <p className="text-sm text-slate-600 bg-white p-3 rounded-xl border border-slate-100 italic">"{formData.description}"</p>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-4">

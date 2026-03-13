@@ -27,6 +27,7 @@ export const BankTransferForm: React.FC<BankTransferFormProps> = ({ onNavigate, 
   const [selectedBank, setSelectedBank] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('');
   const [accountName, setAccountName] = useState('');
   const [isValidating, setIsValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +54,7 @@ export const BankTransferForm: React.FC<BankTransferFormProps> = ({ onNavigate, 
       if (accountNumber === '0661180128' && selectedBank === 'Bank Central Asia (BCA)') {
         setAccountName('Leonardus Wiliem /A');
         setError(null);
-      } else if (accountNumber === '1234567890') {
+      } else if (selectedBank === 'Bank Central Asia (BCA)' && accountNumber === '1234567890') {
         setError(t.bank_acc_invalid);
         setAccountName('');
       } else {
@@ -77,7 +78,12 @@ export const BankTransferForm: React.FC<BankTransferFormProps> = ({ onNavigate, 
       setError(language === 'en' ? 'Please complete all fields' : 'Harap lengkapi semua bidang');
       return;
     }
-    if (parseFloat(amount) + BANK_TRANSFER_FEE > agent.balance) {
+    const transferAmount = parseFloat(amount);
+    if (transferAmount < 20000) {
+      setError(t.bank_min_amount_error);
+      return;
+    }
+    if (transferAmount + BANK_TRANSFER_FEE > agent.balance) {
       setError(language === 'en' ? 'Insufficient balance (including fee)' : 'Saldo tidak mencukupi (termasuk biaya)');
       return;
     }
@@ -233,7 +239,7 @@ export const BankTransferForm: React.FC<BankTransferFormProps> = ({ onNavigate, 
               {error === t.bank_acc_invalid && (
                 <div className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-xl border border-red-100 animate-shake">
                   <AlertCircle size={14} />
-                  <span className="text-xs font-black uppercase tracking-wider">{error}</span>
+                  <span className="text-xs font-bold uppercase tracking-wider leading-tight">{error}</span>
                 </div>
               )}
             </div>
@@ -244,7 +250,7 @@ export const BankTransferForm: React.FC<BankTransferFormProps> = ({ onNavigate, 
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400">Rp</div>
                 <input 
                   type="text" 
-                  className={`w-full pl-12 pr-4 py-4 bg-slate-50 border rounded-2xl font-bold outline-none transition-all ${error && (error.includes('balance') || error.includes('fields')) ? 'border-red-500 ring-2 ring-red-100' : 'border-slate-200 focus:ring-2 focus:ring-blue-500'}`}
+                  className={`w-full pl-12 pr-4 py-4 bg-slate-50 border rounded-2xl font-bold outline-none transition-all ${error ? 'border-red-500 ring-2 ring-red-100' : 'border-slate-200 focus:ring-2 focus:ring-blue-500'}`}
                   placeholder="0"
                   value={amount}
                   onChange={(e) => {
@@ -253,10 +259,10 @@ export const BankTransferForm: React.FC<BankTransferFormProps> = ({ onNavigate, 
                   }}
                 />
               </div>
-              {error && (error.includes('balance') || error.includes('fields')) && (
+              {error && (
                 <div className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-xl border border-red-100 animate-shake">
                   <AlertCircle size={14} />
-                  <span className="text-xs font-black uppercase tracking-wider">{error}</span>
+                  <span className="text-xs font-bold uppercase tracking-wider leading-tight">{error}</span>
                 </div>
               )}
               <div className="flex justify-between items-center px-1">
@@ -266,8 +272,19 @@ export const BankTransferForm: React.FC<BankTransferFormProps> = ({ onNavigate, 
                 </span>
               </div>
               <p className="text-[10px] text-slate-400 font-medium italic px-1">
-                {language === 'en' ? `* A transaction fee of Rp ${BANK_TRANSFER_FEE.toLocaleString()} will be applied.` : `* Biaya transaksi sebesar Rp ${BANK_TRANSFER_FEE.toLocaleString()} akan dikenakan.`}
+                {language === 'en' ? `* Minimum transfer is Rp 20,000. A transaction fee of Rp ${BANK_TRANSFER_FEE.toLocaleString()} will be applied.` : `* Transfer minimal Rp 20.000. Biaya transaksi sebesar Rp ${BANK_TRANSFER_FEE.toLocaleString()} akan dikenakan.`}
               </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{t.man_desc}</label>
+              <textarea 
+                rows={2}
+                placeholder={language === 'en' ? 'Transfer description (optional)...' : 'Deskripsi transfer (opsional)...'}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-medium outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
             </div>
 
             <button 
@@ -326,6 +343,12 @@ export const BankTransferForm: React.FC<BankTransferFormProps> = ({ onNavigate, 
                   </div>
                 </div>
               </div>
+              {description && (
+                <div className="pt-6 border-t border-slate-200">
+                  <span className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-2">{t.man_desc}</span>
+                  <p className="text-sm text-slate-600 bg-white p-4 rounded-2xl border border-slate-100 italic">"{description}"</p>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-4">

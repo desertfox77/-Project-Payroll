@@ -37,6 +37,7 @@ interface Notification {
   time: string;
   type: 'success' | 'warning' | 'info';
   isRead: boolean;
+  relatedView?: ViewState;
 }
 
 const MOCK_NOTIFICATIONS: Notification[] = [
@@ -46,7 +47,8 @@ const MOCK_NOTIFICATIONS: Notification[] = [
     message: 'Batch #BT-90210 containing 124 records has been processed successfully.',
     time: '2m ago',
     type: 'success',
-    isRead: false
+    isRead: false,
+    relatedView: 'history'
   },
   {
     id: 'n2',
@@ -54,7 +56,8 @@ const MOCK_NOTIFICATIONS: Notification[] = [
     message: 'Your agent balance is below Rp 5,000,000. Please top up to avoid disbursement failures.',
     time: '1h ago',
     type: 'warning',
-    isRead: false
+    isRead: false,
+    relatedView: 'dashboard'
   }
 ];
 
@@ -85,6 +88,19 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setView, 
     { id: 'activity-log', label: t.nav_activity, icon: Clock },
     { id: 'settings', label: t.nav_settings, icon: Settings },
   ];
+
+  const handleNotificationClick = (notif: Notification) => {
+    // Mark as read
+    setNotifications(notifications.map(n => 
+      n.id === notif.id ? { ...n, isRead: true } : n
+    ));
+    
+    // Redirect if related view exists
+    if (notif.relatedView) {
+      setView(notif.relatedView);
+      setIsNotificationsOpen(false);
+    }
+  };
 
   const markAllAsRead = () => {
     setNotifications(notifications.map(n => ({ ...n, isRead: true })));
@@ -180,6 +196,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, setView, 
                         {notifications.map((notif) => (
                           <div 
                             key={notif.id} 
+                            onClick={() => handleNotificationClick(notif)}
                             className={`p-5 flex gap-4 hover:bg-slate-50 transition-colors cursor-pointer group ${!notif.isRead ? 'bg-blue-50/30' : ''}`}
                           >
                             <div className="shrink-0 pt-1">

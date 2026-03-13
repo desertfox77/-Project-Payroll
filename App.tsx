@@ -10,30 +10,18 @@ import { TransactionHistory } from './components/TransactionHistory';
 import { ActivityLog } from './components/ActivityLog';
 import { ScheduledDisbursements } from './components/ScheduledDisbursements';
 import { SettingsPage } from './components/SettingsPage';
+import { LoginPage } from './components/LoginPage';
 import { ViewState, User, Language } from './types';
 import { MOCK_AGENT } from './constants';
 
 const App: React.FC = () => {
   const [view, setView] = useState<ViewState>('dashboard');
   const [currentUser, setCurrentUser] = useState<User>(MOCK_AGENT);
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [language, setLanguage] = useState<Language>('en');
 
   if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
-        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
-          <h1 className="text-2xl font-bold mb-4">Welcome to PayStream</h1>
-          <p className="text-slate-600 mb-6">Please sign in to access the disbursement system.</p>
-          <button 
-            onClick={() => setIsAuthenticated(true)}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-          >
-            Mock Sign In
-          </button>
-        </div>
-      </div>
-    );
+    return <LoginPage onLogin={() => setIsAuthenticated(true)} />;
   }
 
   const renderView = () => {
